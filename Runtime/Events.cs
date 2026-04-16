@@ -96,5 +96,13 @@ namespace ED.DOTS.EntitiesEvents
 #endif
             _container.Dispose();
         }
+
+        /// <summary>
+        /// Internal accessor for the underlying unsafe events pointer.
+        /// </summary>
+        internal EventsData<T>* GetUnsafeData()
+        {
+            return _container._data;
+        }
     }
 }
