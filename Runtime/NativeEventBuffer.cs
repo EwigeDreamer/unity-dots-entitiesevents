@@ -16,19 +16,13 @@ namespace ED.DOTS.EntitiesEvents
     public unsafe struct NativeEventBuffer<T> : IDisposable where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
-        private UnsafeList<T>* _listPtr;
+        internal UnsafeList<T>* _listPtr;
 
         private Allocator _allocator;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle m_Safety;
 #endif
-
-        internal UnsafeList<T>* ListPtr
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _listPtr;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NativeEventBuffer{T}"/> struct.

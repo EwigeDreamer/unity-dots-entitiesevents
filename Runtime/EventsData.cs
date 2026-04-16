@@ -10,8 +10,7 @@ namespace ED.DOTS.EntitiesEvents
     /// and swaps their roles on <see cref="Update"/>.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
-    internal unsafe struct EventsData<T> : IDisposable
-        where T : unmanaged
+    internal unsafe struct EventsData<T> : IDisposable where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
         private NativeEventBuffer<T>* _buffer1;

@@ -11,8 +11,7 @@ namespace ED.DOTS.EntitiesEvents
     /// Handles manual memory allocation and provides methods to interact with the event data.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
-    public unsafe struct UnsafeEvents<T> : IDisposable
-        where T : unmanaged
+    public unsafe struct UnsafeEvents<T> : IDisposable where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
         internal EventsData<T>* _data;
@@ -103,134 +102,6 @@ namespace ED.DOTS.EntitiesEvents
         {
             if (_data == null)
                 throw new InvalidOperationException("UnsafeEvents has not been allocated or has been disposed.");
-        }
-    }
-
-    /// <summary>
-    /// Unsafe writer for <see cref="UnsafeEvents{T}"/>.
-    /// Provides direct pointer-based write access without safety checks.
-    /// </summary>
-    /// <typeparam name="T">Unmanaged event type.</typeparam>
-    public unsafe struct UnsafeEventWriter<T>
-        where T : unmanaged
-    {
-        [NativeDisableUnsafePtrRestriction]
-        private readonly NativeEventBuffer<T>* _writeBuffer;
-
-        internal UnsafeEventWriter(in UnsafeEvents<T> events)
-        {
-            _writeBuffer = events._data->GetWriteBuffer();
-        }
-
-        /// <summary>
-        /// Writes an event into the buffer. The buffer may grow.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(in T value)
-        {
-            _writeBuffer->Write(value);
-        }
-
-        /// <summary>
-        /// Writes an event without checking capacity. Ensure capacity before use.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteNoResize(in T value)
-        {
-            _writeBuffer->WriteNoResize(value);
-        }
-
-        /// <summary>
-        /// Returns a parallel writer for concurrent writes.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeEventBuffer<T>.ParallelWriter AsParallelWriter()
-        {
-            return _writeBuffer->AsParallelWriter();
-        }
-    }
-
-    /// <summary>
-    /// Unsafe reader for <see cref="UnsafeEvents{T}"/>.
-    /// Provides direct pointer-based read access without safety checks.
-    /// </summary>
-    /// <typeparam name="T">Unmanaged event type.</typeparam>
-    public unsafe struct UnsafeEventReader<T>
-        where T : unmanaged
-    {
-        [NativeDisableUnsafePtrRestriction]
-        private readonly NativeEventBuffer<T>* _readBuffer;
-
-        internal UnsafeEventReader(in UnsafeEvents<T> events)
-        {
-            _readBuffer = events._data->GetReadBuffer();
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates over all events in the read buffer.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(_readBuffer);
-        }
-
-        /// <summary>
-        /// Enumerator for iterating over events in the read buffer.
-        /// </summary>
-        public struct Enumerator
-        {
-            [NativeDisableUnsafePtrRestriction]
-            private readonly T* _ptr;
-            private readonly int _length;
-            private int _index;
-
-            internal Enumerator(NativeEventBuffer<T>* buffer)
-            {
-                // Access the internal UnsafeList<T> pointer from NativeEventBuffer.
-                // Since we are inside ED.DOTS.EntitiesEvents, we can access internal fields.
-                // For now, we'll assume NativeEventBuffer exposes a method to get the list pointer.
-                // We'll add an internal method in NativeEventBuffer later if needed.
-                // Placeholder logic:
-                var listPtr = buffer->ListPtr;
-                _ptr = listPtr->Ptr;
-                _length = listPtr->Length;
-                _index = -1;
-            }
-
-            /// <summary>
-            /// Moves to the next element.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                _index++;
-                return _index < _length;
-            }
-
-            /// <summary>
-            /// Gets the current element.
-            /// </summary>
-            public T Current
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _ptr[_index];
-            }
-
-            /// <summary>
-            /// Resets the enumerator.
-            /// </summary>
-            public void Reset()
-            {
-                _index = -1;
-            }
-
-            /// <summary>
-            /// Disposes the enumerator.
-            /// </summary>
-            public void Dispose()
-            {
-            }
         }
     }
 }
