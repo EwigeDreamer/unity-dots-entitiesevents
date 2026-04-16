@@ -12,6 +12,7 @@ namespace ED.DOTS.EntitiesEvents
     /// Supports parallel writing via <see cref="ParallelWriter"/>.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
+    [BurstCompile]
     [NativeContainer]
     public unsafe struct NativeEventBuffer<T> : IDisposable where T : unmanaged
     {
@@ -105,6 +106,7 @@ namespace ED.DOTS.EntitiesEvents
         /// Ensures that the buffer has at least the specified capacity.
         /// </summary>
         /// <param name="capacity">Minimum capacity required.</param>
+        [BurstCompile]
         public void EnsureCapacity(int capacity)
         {
             CheckWriteAccess();
@@ -128,6 +130,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <summary>
         /// Releases all resources held by this buffer.
         /// </summary>
+        [BurstCompile]
         public void Dispose()
         {
             if (!IsCreated)
@@ -141,6 +144,7 @@ namespace ED.DOTS.EntitiesEvents
             _listPtr = null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         private void CheckWriteAccess()
         {
@@ -152,6 +156,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <summary>
         /// Provides parallel write access to a <see cref="NativeEventBuffer{T}"/>.
         /// </summary>
+        [BurstCompile]
         [NativeContainer]
         [NativeContainerIsAtomicWriteOnly]
         public unsafe struct ParallelWriter

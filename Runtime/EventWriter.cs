@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace ED.DOTS.EntitiesEvents
@@ -8,6 +9,7 @@ namespace ED.DOTS.EntitiesEvents
     /// Can be used in jobs with appropriate safety handles.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
+    [BurstCompile]
     [NativeContainer]
     [NativeContainerIsAtomicWriteOnly]
     public unsafe struct EventWriter<T> where T : unmanaged

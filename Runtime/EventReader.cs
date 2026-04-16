@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace ED.DOTS.EntitiesEvents
@@ -10,6 +11,7 @@ namespace ED.DOTS.EntitiesEvents
     /// Can be used in jobs with appropriate safety handles.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
+    [BurstCompile]
     [NativeContainer]
     [NativeContainerIsReadOnly]
     public unsafe struct EventReader<T>
@@ -50,6 +52,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <summary>
         /// Enumerator for iterating over events in the read buffer.
         /// </summary>
+        [BurstCompile]
         public struct Enumerator : IEnumerator<T>
         {
             [NativeDisableUnsafePtrRestriction]
@@ -89,6 +92,7 @@ namespace ED.DOTS.EntitiesEvents
             /// <summary>
             /// Resets the enumerator to the beginning.
             /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
             {
                 _index = -1;
