@@ -24,6 +24,12 @@ namespace ED.DOTS.EntitiesEvents
         internal AtomicSafetyHandle m_Safety;
 #endif
 
+        internal UnsafeList<T>* ListPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _listPtr;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="NativeEventBuffer{T}"/> struct.
         /// </summary>
