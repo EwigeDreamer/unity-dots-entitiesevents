@@ -9,9 +9,7 @@
         "Unity.Burst",
         "EwigeDreamer.DOTS.EntitiesEvents"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
