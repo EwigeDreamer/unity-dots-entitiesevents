@@ -22,21 +22,41 @@ namespace ED.DOTS.EntitiesEvents
         internal EventReader(in Events<T> events)
         {
             _data = events._container._data;
-            // m_Safety не хранится — проверки выполняются на уровне конкретного буфера
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates over all events in the current read buffer.
+        /// Returns an iterator that can be used in a foreach loop to read events from the current read buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator GetEnumerator()
+        public EventIterator Read()
         {
             var readBuffer = _data->GetReadBuffer();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(readBuffer->m_Safety);
 #endif
-            return new Enumerator(readBuffer);
+            return new EventIterator(readBuffer);
+        }
+
+        /// <summary>
+        /// Iterator struct that enables enumeration over events in the read buffer.
+        /// </summary>
+        [BurstCompile]
+        public readonly struct EventIterator
+        {
+            [NativeDisableUnsafePtrRestriction]
+            private readonly NativeEventBuffer<T>* _readBuffer;
+
+            internal EventIterator(NativeEventBuffer<T>* readBuffer)
+            {
+                _readBuffer = readBuffer;
+            }
+
+            /// <summary>
+            /// Returns an enumerator that iterates over events in the read buffer.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Enumerator GetEnumerator() => new Enumerator(_readBuffer);
         }
 
         /// <summary>
@@ -91,7 +111,9 @@ namespace ED.DOTS.EntitiesEvents
             /// <summary>
             /// Disposes the enumerator.
             /// </summary>
-            public void Dispose() { }
+            public void Dispose()
+            {
+            }
         }
     }
 }

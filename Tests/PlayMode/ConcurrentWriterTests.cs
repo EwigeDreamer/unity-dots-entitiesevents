@@ -64,7 +64,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
             var reader = events.GetReader();
             int count = 0;
-            foreach (var ev in reader)
+            foreach (var ev in reader.Read())
                 count++;
 
             Assert.AreEqual(totalCount, count);
@@ -128,7 +128,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             {
                 ReceivedCount = 0;
                 ReceivedSum = 0;
-                foreach (var ev in _reader)
+                foreach (var ev in _reader.Read())
                 {
                     ReceivedCount++;
                     ReceivedSum += ev.Value;

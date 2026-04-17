@@ -71,7 +71,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             public void OnUpdate(ref SystemState state)
             {
                 ReceivedCount = 0;
-                foreach (var ev in _reader)
+                foreach (var ev in _reader.Read())
                 {
                     ReceivedCount++;
                 }
@@ -93,7 +93,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             protected override void OnUpdate()
             {
                 ReceivedCount = 0;
-                foreach (var ev in _reader)
+                foreach (var ev in _reader.Read())
                 {
                     ReceivedCount++;
                 }
@@ -174,7 +174,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
             var reader = EntityManager.GetEventReader<IntegrationTestEvent>();
             // Пока Update не вызван, reader не должен видеть события
-            var enumerator = reader.GetEnumerator();
+            using var enumerator = reader.Read().GetEnumerator();
             Assert.IsFalse(enumerator.MoveNext());
 
             // Вызовем Update вручную через хелпер (нужно получить Events)
@@ -183,7 +183,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
             var readerAfter = EntityManager.GetEventReader<IntegrationTestEvent>();
             int count = 0;
-            foreach (var ev in readerAfter)
+            foreach (var ev in readerAfter.Read())
                 count++;
             Assert.AreEqual(2, count);
         }

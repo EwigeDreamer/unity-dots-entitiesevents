@@ -29,7 +29,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             writer.Write(new IntegrationTestEvent { Value = 42 });
 
             var reader = events.GetReader();
-            using var enumerator = reader.GetEnumerator();
+            using var enumerator = reader.Read().GetEnumerator();
 
             Assert.IsFalse(enumerator.MoveNext());
 
@@ -48,7 +48,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             events.Update();
 
             var reader = events.GetReader();
-            using var enumerator = reader.GetEnumerator();
+            using var enumerator = reader.Read().GetEnumerator();
 
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(1, enumerator.Current.Value);
@@ -73,7 +73,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             events.Update();
 
             var reader = events.GetReader();
-            using var enumerator = reader.GetEnumerator();
+            using var enumerator = reader.Read().GetEnumerator();
 
             int expected = 0;
             while (enumerator.MoveNext())
@@ -92,20 +92,20 @@ namespace ED.DOTS.EntitiesEvents.Tests
             var events = new Events<IntegrationTestEvent>(16, Allocator.Persistent);
             var reader = events.GetReader();
             
-            var enumerator = reader.GetEnumerator();
+            var enumerator = reader.Read().GetEnumerator();
             Assert.IsFalse(enumerator.MoveNext());
             enumerator.Dispose();
 
             var writer = events.GetWriter();
             writer.Write(new IntegrationTestEvent { Value = 123 });
             
-            enumerator = reader.GetEnumerator();
+            enumerator = reader.Read().GetEnumerator();
             Assert.IsFalse(enumerator.MoveNext());
             enumerator.Dispose();
             
             events.Update();
             
-            enumerator = reader.GetEnumerator();
+            enumerator = reader.Read().GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(123, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());
@@ -114,7 +114,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             var writer2 = events.GetWriter();
             writer2.Write(new IntegrationTestEvent { Value = 456 });
             
-            enumerator = reader.GetEnumerator();
+            enumerator = reader.Read().GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(123, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());
@@ -122,7 +122,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             
             events.Update();
 
-            enumerator = reader.GetEnumerator();
+            enumerator = reader.Read().GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(456, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());
@@ -145,7 +145,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             events.Update();
 
             // Чтение должно вернуть событие из первого кадра
-            var enumerator = reader.GetEnumerator();
+            var enumerator = reader.Read().GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(100, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());
@@ -156,7 +156,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             events.Update();
 
             // Чтение через тот же reader
-            enumerator = reader.GetEnumerator();
+            enumerator = reader.Read().GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(200, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());

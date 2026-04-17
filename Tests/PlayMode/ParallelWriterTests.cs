@@ -64,7 +64,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
             var reader = events.GetReader();
             int count = 0;
-            var enumerator = reader.GetEnumerator();
+            using var enumerator = reader.Read().GetEnumerator();
             while (enumerator.MoveNext())
             {
                 count++;
@@ -95,7 +95,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             Assert.DoesNotThrow(() =>
             {
                 int count = 0;
-                foreach (var _ in reader)
+                foreach (var _ in reader.Read())
                 {
                     count++;
                 }
@@ -164,7 +164,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             protected override void OnUpdate()
             {
                 ReceivedCount = 0;
-                foreach (var ev in _reader)
+                foreach (var ev in _reader.Read())
                 {
                     ReceivedCount++;
                 }
