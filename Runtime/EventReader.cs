@@ -21,7 +21,7 @@ namespace ED.DOTS.EntitiesEvents
 
         internal EventReader(in Events<T> events)
         {
-            _data = events._container._data;
+            _data = events._data;
         }
 
         /// <summary>

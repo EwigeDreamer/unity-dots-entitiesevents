@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -11,15 +12,14 @@ namespace ED.DOTS.EntitiesEvents
     /// Provides <see cref="EventWriter{T}"/> and <see cref="EventReader{T}"/> for inter-system messaging.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
+    [BurstCompile]
     [NativeContainer]
     public unsafe struct Events<T> : IDisposable where T : unmanaged
     {
-        internal UnsafeEvents<T> _container;
+        [NativeDisableUnsafePtrRestriction]
+        internal EventsData<T>* _data;
 
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal AtomicSafetyHandle m_Safety;
-        private static readonly SharedStatic<int> s_staticSafetyId = SharedStatic<int>.GetOrCreate<Events<T>>();
-#endif
+        private readonly Allocator _allocator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Events{T}"/> struct.
@@ -28,15 +28,22 @@ namespace ED.DOTS.EntitiesEvents
         /// <param name="allocator">Allocator to use for all internal allocations.</param>
         public Events(int initialCapacity, Allocator allocator)
         {
-            _container = new UnsafeEvents<T>(initialCapacity, allocator);
-
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_Safety = CollectionHelper.CreateSafetyHandle(allocator);
-            CollectionHelper.SetStaticSafetyId<Events<T>>(ref m_Safety, ref s_staticSafetyId.Data);
-            if (UnsafeUtility.IsNativeContainerType<T>())
-                AtomicSafetyHandle.SetNestedContainer(m_Safety, true);
-            AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
+            if (allocator <= Allocator.None)
+                throw new ArgumentException("Allocator must be Temp, TempJob, Persistent or registered custom allocator", nameof(allocator));
+            if (initialCapacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(initialCapacity), "InitialCapacity must be >= 0");
 #endif
+
+            var size = UnsafeUtility.SizeOf<EventsData<T>>();
+            var alignment = UnsafeUtility.AlignOf<EventsData<T>>();
+            _data = (EventsData<T>*)UnsafeUtility.MallocTracked(size, alignment, allocator, 1);
+            UnsafeUtility.MemClear(_data, size);
+
+            var data = new EventsData<T>(initialCapacity, allocator);
+            UnsafeUtility.CopyStructureToPtr(ref data, _data);
+
+            _allocator = allocator;
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace ED.DOTS.EntitiesEvents
         public bool IsCreated
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _container.IsCreated;
+            get => _data != null;
         }
 
         /// <summary>
@@ -56,10 +63,8 @@ namespace ED.DOTS.EntitiesEvents
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Update()
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-#endif
-            _container.Update();
+            CheckData();
+            _data->Update();
         }
 
         /// <summary>
@@ -68,9 +73,7 @@ namespace ED.DOTS.EntitiesEvents
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EventWriter<T> GetWriter()
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
-#endif
+            CheckData();
             return new EventWriter<T>(this);
         }
 
@@ -80,9 +83,7 @@ namespace ED.DOTS.EntitiesEvents
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EventReader<T> GetReader()
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
-#endif
+            CheckData();
             return new EventReader<T>(this);
         }
 
@@ -91,10 +92,12 @@ namespace ED.DOTS.EntitiesEvents
         /// </summary>
         public void Dispose()
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            CollectionHelper.DisposeSafetyHandle(ref m_Safety);
-#endif
-            _container.Dispose();
+            if (_data == null)
+                return;
+
+            _data->Dispose();
+            UnsafeUtility.FreeTracked(_data, _allocator);
+            _data = null;
         }
 
         /// <summary>
@@ -102,7 +105,14 @@ namespace ED.DOTS.EntitiesEvents
         /// </summary>
         public EventsData<T>* GetUnsafeData()
         {
-            return _container._data;
+            return _data;
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private void CheckData()
+        {
+            if (_data == null)
+                throw new InvalidOperationException("Events has not been allocated or has been disposed.");
         }
     }
 }
