@@ -6,7 +6,7 @@ namespace ED.DOTS.EntitiesEvents
 {
     /// <summary>
     /// Provides write access to events of type <typeparamref name="T"/>.
-    /// Can be used in jobs with appropriate safety handles.
+    /// Can be safely cached across frames; always writes to the current active write buffer.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
     [BurstCompile]
@@ -15,37 +15,27 @@ namespace ED.DOTS.EntitiesEvents
     public unsafe struct EventWriter<T> where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
-        internal readonly NativeEventBuffer<T>* _writeBuffer;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal AtomicSafetyHandle m_Safety;
-#endif
+        private readonly EventsData<T>* _data;
 
         internal EventWriter(in Events<T> events)
         {
-            var data = events._container._data;
-            _writeBuffer = data->GetWriteBuffer();
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            // Use the safety handle of the specific write buffer
-            m_Safety = _writeBuffer->m_Safety;
-            AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
-            AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
-            AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
-#endif
+            _data = events._container._data;
+            // m_Safety не хранится — проверки выполняются на уровне конкретного буфера
         }
 
         /// <summary>
-        /// Writes an event into the buffer. The buffer will grow if necessary.
+        /// Writes an event into the current write buffer. The buffer will grow if necessary.
         /// </summary>
         /// <param name="value">Event data to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(in T value)
         {
+            var writeBuffer = _data->GetWriteBuffer();
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+            AtomicSafetyHandle.CheckWriteAndThrow(writeBuffer->m_Safety);
 #endif
-            _writeBuffer->Write(value);
+            writeBuffer->Write(value);
         }
 
         /// <summary>
@@ -56,22 +46,23 @@ namespace ED.DOTS.EntitiesEvents
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteNoResize(in T value)
         {
+            var writeBuffer = _data->GetWriteBuffer();
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+            AtomicSafetyHandle.CheckWriteAndThrow(writeBuffer->m_Safety);
 #endif
-            _writeBuffer->WriteNoResize(value);
+            writeBuffer->WriteNoResize(value);
         }
 
         /// <summary>
         /// Returns a parallel writer that can be used to write events from multiple threads.
+        /// The parallel writer captures the current write buffer at call time.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EventParallelWriter<T> AsParallelWriter()
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
-#endif
-            return new EventParallelWriter<T>(this);
+            var writeBuffer = _data->GetWriteBuffer();
+            return new EventParallelWriter<T>(writeBuffer);
         }
     }
 }

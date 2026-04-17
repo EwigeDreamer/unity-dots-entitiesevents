@@ -13,18 +13,21 @@ namespace ED.DOTS.EntitiesEvents
     public unsafe struct EventParallelWriter<T>
         where T : unmanaged
     {
+        [NativeDisableUnsafePtrRestriction]
+        private readonly NativeEventBuffer<T>* _writeBuffer;
         private NativeEventBuffer<T>.ParallelWriter _parallelWriter;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle m_Safety;
 #endif
 
-        internal EventParallelWriter(in EventWriter<T> writer)
+        internal EventParallelWriter(NativeEventBuffer<T>* writeBuffer)
         {
-            _parallelWriter = writer._writeBuffer->AsParallelWriter();
+            _writeBuffer = writeBuffer;
+            _parallelWriter = writeBuffer->AsParallelWriter();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_Safety = writer.m_Safety;
+            m_Safety = writeBuffer->m_Safety;
             AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
             AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
 #endif

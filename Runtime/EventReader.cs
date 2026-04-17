@@ -8,7 +8,7 @@ namespace ED.DOTS.EntitiesEvents
 {
     /// <summary>
     /// Provides read access to events of type <typeparamref name="T"/>.
-    /// Can be used in jobs with appropriate safety handles.
+    /// Can be safely cached across frames; always reads from the current active read buffer.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
     [BurstCompile]
@@ -18,35 +18,26 @@ namespace ED.DOTS.EntitiesEvents
         where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
-        private readonly NativeEventBuffer<T>* _readBuffer;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal AtomicSafetyHandle m_Safety;
-#endif
+        private readonly EventsData<T>* _data;
 
         internal EventReader(in Events<T> events)
         {
-            var data = events._container._data;
-            _readBuffer = data->GetReadBuffer();
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            // Use the safety handle of the specific read buffer
-            m_Safety = _readBuffer->m_Safety;
-            AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
-            AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
-#endif
+            _data = events._container._data;
+            // m_Safety не хранится — проверки выполняются на уровне конкретного буфера
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates over all events in the read buffer.
+        /// Returns an enumerator that iterates over all events in the current read buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Enumerator GetEnumerator()
         {
+            var readBuffer = _data->GetReadBuffer();
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+            AtomicSafetyHandle.CheckReadAndThrow(readBuffer->m_Safety);
 #endif
-            return new Enumerator(_readBuffer);
+            return new Enumerator(readBuffer);
         }
 
         /// <summary>
