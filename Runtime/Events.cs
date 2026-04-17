@@ -100,7 +100,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <summary>
         /// Internal accessor for the underlying unsafe events pointer.
         /// </summary>
-        internal EventsData<T>* GetUnsafeData()
+        public EventsData<T>* GetUnsafeData()
         {
             return _container._data;
         }
