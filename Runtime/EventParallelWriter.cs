@@ -10,12 +10,10 @@ namespace ED.DOTS.EntitiesEvents
     /// <typeparam name="T">Unmanaged event type.</typeparam>
     [NativeContainer]
     [NativeContainerIsAtomicWriteOnly]
-    public unsafe struct EventParallelWriter<T>
-        where T : unmanaged
+    public unsafe struct EventParallelWriter<T> where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
-        private readonly NativeEventBuffer<T>* _writeBuffer;
-        private NativeEventBuffer<T>.ParallelWriter _parallelWriter;
+        private UnsafeList<T>* _listPtr;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle m_Safety;
@@ -23,8 +21,7 @@ namespace ED.DOTS.EntitiesEvents
 
         internal EventParallelWriter(NativeEventBuffer<T>* writeBuffer)
         {
-            _writeBuffer = writeBuffer;
-            _parallelWriter = writeBuffer->AsParallelWriter();
+            _listPtr = writeBuffer->_listPtr;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = writeBuffer->m_Safety;
@@ -44,7 +41,7 @@ namespace ED.DOTS.EntitiesEvents
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            _parallelWriter.WriteNoResize(value);
+            _listPtr->AddNoResize(value);
         }
     }
 }
