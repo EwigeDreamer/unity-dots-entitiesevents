@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using NUnit.Framework;
 using Unity.Entities;
 using Unity.Collections;
 
@@ -28,9 +29,13 @@ namespace ED.DOTS.EntitiesEvents.Tests
             World.DefaultGameObjectInjectionWorld = World;
 
             // Ensure systems do not automatically update unless explicitly called
-            World.GetOrCreateSystemManaged<InitializationSystemGroup>();
-            World.GetOrCreateSystemManaged<SimulationSystemGroup>();
-            World.GetOrCreateSystemManaged<PresentationSystemGroup>();
+            var initializationGroup = World.GetOrCreateSystemManaged<InitializationSystemGroup>();
+            var simulationGroup = World.GetOrCreateSystemManaged<SimulationSystemGroup>();
+            var presentationGroup = World.GetOrCreateSystemManaged<PresentationSystemGroup>();
+            
+            var eventSystemGroup = World.GetOrCreateSystemManaged<EventSystemGroup>();
+            simulationGroup.AddSystemToUpdateList(eventSystemGroup);
+            simulationGroup.SortSystems();
 
             RegisterEventSystems(World);
         }
@@ -66,5 +71,43 @@ namespace ED.DOTS.EntitiesEvents.Tests
         /// Ensures all tracked jobs are completed.
         /// </summary>
         protected void CompleteJobs() => EntityManager.CompleteAllTrackedJobs();
+
+        protected T GetOrAddEventSystem<T>() where T : SystemBase
+        {
+            foreach (var system in World.Systems)
+                if (system is T result)
+                    return result;
+            var newSystem = World.GetOrCreateSystemManaged<T>();
+            World.GetOrCreateSystemManaged<EventSystemGroup>().AddSystemToUpdateList(newSystem);
+            World.GetOrCreateSystemManaged<EventSystemGroup>().SortSystems();
+            return newSystem;
+        }
+
+        protected T GetOrAddSystemToSimulationManaged<T>() where T : SystemBase
+        {
+            foreach (var system in World.Systems)
+                if (system is T result)
+                    return result;
+            var newSystem = World.GetOrCreateSystemManaged<T>();
+            World.GetOrCreateSystemManaged<SimulationSystemGroup>().AddSystemToUpdateList(newSystem);
+            World.GetOrCreateSystemManaged<SimulationSystemGroup>().SortSystems();
+            return newSystem;
+        }
+
+        protected ref T GetOrAddSystemToSimulation<T>() where T : unmanaged, ISystem
+        {
+            var desiredTypeIndex = TypeManager.GetSystemTypeIndex<T>();
+            using var systems = World.Unmanaged.GetAllUnmanagedSystems(Allocator.Temp);
+            foreach (var handle in systems)
+            {
+                var typeIndex = World.Unmanaged.GetSystemTypeIndex(handle);
+                if (typeIndex != desiredTypeIndex) continue;
+                return ref World.Unmanaged.GetUnsafeSystemRef<T>(handle);
+            }
+            var newHandle = World.GetOrCreateSystem<T>();
+            World.GetOrCreateSystemManaged<SimulationSystemGroup>().AddSystemToUpdateList(newHandle);
+            World.GetOrCreateSystemManaged<SimulationSystemGroup>().SortSystems();
+            return ref World.Unmanaged.GetUnsafeSystemRef<T>(newHandle);
+        }
     }
 }

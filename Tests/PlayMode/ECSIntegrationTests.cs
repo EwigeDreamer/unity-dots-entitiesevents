@@ -14,6 +14,11 @@ namespace ED.DOTS.EntitiesEvents.Tests
     [TestFixture]
     public class ECSIntegrationTests : ECSTestBase
     {
+        protected override void RegisterEventSystems(World world)
+        {
+            GetOrAddEventSystem<IntegrationTestEvent_EventSystem>();
+        }
+        
         // --- Тестовые системы ---
 
         // ISystem вариант писателя
@@ -97,11 +102,6 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
         // --- Тесты ---
 
-        protected override void RegisterEventSystems(World world)
-        {
-            world.GetOrCreateSystemManaged<IntegrationTestEvent_EventSystem>();
-        }
-
         [Test]
         public void GetWriter_FromSystemState_CreatesSingletonAndReturnsValidWriter()
         {
@@ -120,10 +120,8 @@ namespace ED.DOTS.EntitiesEvents.Tests
         public void WriterISystem_And_ReaderISystem_ExchangeEvents()
         {
             // Создаём системы
-            var writerHandle = World.GetOrCreateSystem<WriterISystem>();
-            var readerHandle = World.GetOrCreateSystem<ReaderISystem>();
-            ref var writer = ref World.Unmanaged.GetUnsafeSystemRef<WriterISystem>(writerHandle);
-            ref var reader = ref World.Unmanaged.GetUnsafeSystemRef<ReaderISystem>(readerHandle);
+            ref var writer = ref GetOrAddSystemToSimulation<WriterISystem>();
+            ref var reader = ref GetOrAddSystemToSimulation<ReaderISystem>();
 
             // Первый кадр: запись
             UpdateWorld(1);
@@ -141,8 +139,8 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [Test]
         public void WriterSystemBase_And_ReaderSystemBase_ExchangeEvents()
         {
-            var writer = World.GetOrCreateSystemManaged<WriterSystemBase>();
-            var reader = World.GetOrCreateSystemManaged<ReaderSystemBase>();
+            var writer = GetOrAddSystemToSimulationManaged<WriterSystemBase>();
+            var reader = GetOrAddSystemToSimulationManaged<ReaderSystemBase>();
 
             UpdateWorld(1);
             Assert.AreEqual(0, reader.ReceivedCount);

@@ -90,28 +90,43 @@ namespace ED.DOTS.EntitiesEvents.Tests
         public void Update_ClearsWriteBuffer()
         {
             var events = new Events<IntegrationTestEvent>(16, Allocator.Persistent);
+            var reader = events.GetReader();
+            
+            var enumerator = reader.GetEnumerator();
+            Assert.IsFalse(enumerator.MoveNext());
+            enumerator.Dispose();
 
-            // Пишем в первый буфер
             var writer = events.GetWriter();
             writer.Write(new IntegrationTestEvent { Value = 123 });
-
-            // После Update первый буфер становится read-буфером, второй очищается и становится write-буфером
+            
+            enumerator = reader.GetEnumerator();
+            Assert.IsFalse(enumerator.MoveNext());
+            enumerator.Dispose();
+            
             events.Update();
-
-            // Второй буфер должен быть пуст
-            var writer2 = events.GetWriter();
-            writer2.Write(new IntegrationTestEvent { Value = 456 });
-
-            events.Update();
-
-            var reader = events.GetReader();
-            var enumerator = reader.GetEnumerator();
-
+            
+            enumerator = reader.GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(123, enumerator.Current.Value);
+            Assert.IsFalse(enumerator.MoveNext());
+            enumerator.Dispose();
+
+            var writer2 = events.GetWriter();
+            writer2.Write(new IntegrationTestEvent { Value = 456 });
+            
+            enumerator = reader.GetEnumerator();
+            Assert.IsTrue(enumerator.MoveNext());
+            Assert.AreEqual(123, enumerator.Current.Value);
+            Assert.IsFalse(enumerator.MoveNext());
+            enumerator.Dispose();
+            
+            events.Update();
+
+            enumerator = reader.GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext());
             Assert.AreEqual(456, enumerator.Current.Value);
             Assert.IsFalse(enumerator.MoveNext());
+            enumerator.Dispose();
 
             events.Dispose();
         }

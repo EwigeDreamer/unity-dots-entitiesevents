@@ -14,8 +14,7 @@ namespace ED.DOTS.EntitiesEvents
     [BurstCompile]
     [NativeContainer]
     [NativeContainerIsReadOnly]
-    public unsafe struct EventReader<T>
-        where T : unmanaged
+    public unsafe struct EventReader<T> where T : unmanaged
     {
         [NativeDisableUnsafePtrRestriction]
         private readonly EventsData<T>* _data;
@@ -92,9 +91,7 @@ namespace ED.DOTS.EntitiesEvents
             /// <summary>
             /// Disposes the enumerator.
             /// </summary>
-            public void Dispose()
-            {
-            }
+            public void Dispose() { }
         }
     }
 }

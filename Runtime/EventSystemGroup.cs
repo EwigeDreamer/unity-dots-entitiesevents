@@ -8,6 +8,5 @@ namespace ED.DOTS.EntitiesEvents
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(EndSimulationEntityCommandBufferSystem))]
-    [CreateBefore(typeof(SimulationSystemGroup))]
     public sealed partial class EventSystemGroup : ComponentSystemGroup { }
 }

@@ -6,14 +6,14 @@ namespace ED.DOTS.EntitiesEvents
     /// <summary>
     /// Provides parallel write access to events of type <typeparamref name="T"/>.
     /// Suitable for use in <see cref="Unity.Jobs.IJobParallelFor"/> and similar.
+    /// This writer is thread-safe and uses atomic operations internally.
     /// </summary>
     /// <typeparam name="T">Unmanaged event type.</typeparam>
     [NativeContainer]
     [NativeContainerIsAtomicWriteOnly]
     public unsafe struct EventParallelWriter<T> where T : unmanaged
     {
-        [NativeDisableUnsafePtrRestriction]
-        private UnsafeList<T>* _listPtr;
+        private UnsafeList<T>.ParallelWriter _parallelWriter;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle m_Safety;
@@ -21,7 +21,7 @@ namespace ED.DOTS.EntitiesEvents
 
         internal EventParallelWriter(NativeEventBuffer<T>* writeBuffer)
         {
-            _listPtr = writeBuffer->_listPtr;
+            _parallelWriter = writeBuffer->_listPtr->AsParallelWriter();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = writeBuffer->m_Safety;
@@ -41,7 +41,7 @@ namespace ED.DOTS.EntitiesEvents
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            _listPtr->AddNoResize(value);
+            _parallelWriter.AddNoResize(value);
         }
     }
 }

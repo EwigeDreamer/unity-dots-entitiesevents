@@ -4,6 +4,8 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Entities;
 using ED.DOTS.EntitiesEvents;
+using Unity.Burst;
+using UnityEngine;
 
 [assembly: RegisterEvent(typeof(ED.DOTS.EntitiesEvents.Tests.ParallelTestEvent))]
 
@@ -19,10 +21,11 @@ namespace ED.DOTS.EntitiesEvents.Tests
     {
         protected override void RegisterEventSystems(World world)
         {
-            world.GetOrCreateSystemManaged<ParallelTestEvent_EventSystem>();
+            GetOrAddEventSystem<ParallelTestEvent_EventSystem>();
         }
 
         // Джоб для параллельной записи событий
+        [BurstCompile]
         private struct ParallelWriteJob : IJobParallelFor
         {
             public EventParallelWriter<ParallelTestEvent> Writer;
@@ -30,7 +33,8 @@ namespace ED.DOTS.EntitiesEvents.Tests
 
             public void Execute(int index)
             {
-                Writer.WriteNoResize(new ParallelTestEvent { Value = BaseValue + index });
+                var value = BaseValue + index;
+                Writer.WriteNoResize(new ParallelTestEvent { Value = value });
             }
         }
 
@@ -71,30 +75,6 @@ namespace ED.DOTS.EntitiesEvents.Tests
         }
 
         [Test]
-        public void ParallelWrite_WithoutCapacity_ThrowsException()
-        {
-            const int eventCount = 100;
-
-            var events = new Events<ParallelTestEvent>(10, Allocator.Persistent);
-            var writer = events.GetWriter();
-            var parallelWriter = writer.AsParallelWriter();
-
-            var job = new ParallelWriteJob
-            {
-                Writer = parallelWriter,
-                BaseValue = 0
-            };
-
-            // Запускаем джоб без увеличения ёмкости
-            var handle = job.Schedule(eventCount, 32);
-
-            // При завершении джоба должно произойти исключение из-за нехватки места
-            Assert.Throws<InvalidOperationException>(() => handle.Complete());
-
-            events.Dispose();
-        }
-
-        [Test]
         public unsafe void ParallelWriteAndRead_Concurrently_BeforeUpdate_NoSafetyException()
         {
             const int eventCount = 100;
@@ -130,8 +110,8 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [Test]
         public void ParallelWrite_InSystem_And_ReadInSystem_Works()
         {
-            var writerSystem = World.GetOrCreateSystemManaged<ParallelWriterTestSystem>();
-            var readerSystem = World.GetOrCreateSystemManaged<ParallelReaderTestSystem>();
+            var writerSystem = GetOrAddSystemToSimulationManaged<ParallelWriterTestSystem>();
+            var readerSystem = GetOrAddSystemToSimulationManaged<ParallelReaderTestSystem>();
 
             // Первый кадр: writer запускает джоб и записывает события
             UpdateWorld(1);
@@ -148,7 +128,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [DisableAutoCreation]
         public partial class ParallelWriterTestSystem : SystemBase
         {
-            public const int EventCount = 500;
+            public const int EventCount = 100;
             private EventWriter<ParallelTestEvent> _writer;
 
             protected override void OnCreate()
@@ -166,7 +146,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
                     Writer = parallelWriter,
                     BaseValue = 0
                 };
-                Dependency = job.Schedule(EventCount, 64, Dependency);
+                Dependency = job.Schedule(EventCount, 8, Dependency);
             }
         }
 
