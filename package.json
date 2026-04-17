@@ -19,5 +19,12 @@
     "name": "Pavel Sborshchikov",
     "url": "https://github.com/EwigeDreamer",
     "email": "ewigedreamer@gmail.com"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Package Unit Tests",
+      "description": "Contains unit tests for the package. After import, the tests should appear automatically in the Test Runner.",
+      "path": "Tests~"
+    }
+  ]
 }
