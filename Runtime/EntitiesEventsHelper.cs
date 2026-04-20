@@ -17,7 +17,8 @@ namespace ED.DOTS.EntitiesEvents
         /// <returns>The singleton component.</returns>
         public static EventSingleton<T> GetOrCreateSingleton<T>(ref SystemState state) where T : unmanaged
         {
-            var query = state.GetEntityQuery(ComponentType.ReadWrite<EventSingleton<T>>());
+            using var builder = new EntityQueryBuilder(Allocator.Temp).WithAll<EventSingleton<T>>();
+            var query = builder.Build(ref state);
             if (query.TryGetSingleton<EventSingleton<T>>(out var singleton))
                 return singleton;
 
@@ -35,10 +36,10 @@ namespace ED.DOTS.EntitiesEvents
         /// <returns>The singleton component.</returns>
         public static EventSingleton<T> GetOrCreateSingleton<T>(EntityManager entityManager) where T : unmanaged
         {
-            var query = entityManager.CreateEntityQuery(ComponentType.ReadWrite<EventSingleton<T>>());
+            using var builder = new EntityQueryBuilder(Allocator.Temp).WithAll<EventSingleton<T>>();
+            var query = builder.Build(entityManager);
             if (query.TryGetSingleton<EventSingleton<T>>(out var singleton))
                 return singleton;
-
             var events = new Events<T>(512, Allocator.Persistent);
             singleton = new EventSingleton<T> { Events = events };
             entityManager.CreateSingleton(singleton);

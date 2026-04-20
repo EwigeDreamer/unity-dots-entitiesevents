@@ -20,7 +20,6 @@ namespace ED.DOTS.EntitiesEvents
         internal EventWriter(in Events<T> events)
         {
             _data = events._data;
-            // m_Safety не хранится — проверки выполняются на уровне конкретного буфера
         }
 
         /// <summary>
