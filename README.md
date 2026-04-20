@@ -14,13 +14,13 @@ A library that adds event functionality to Unity's Entity Component System (ECS)
 ## Requirements
 * Unity 6000.0 or higher
 * Packages:
-  * com.unity.entities 1.4.5 or higher
-  * com.unity.collections 2.6.5 or higher
-  * com.unity.burst 1.8.27 or higher
+  * `com.unity.entities` 1.4.5 or higher
+  * `com.unity.collections` 2.6.5 or higher
+  * `com.unity.burst` 1.8.27 or higher
 
 ## Installation
 Add the package via Package Manager using the git URL:
-```https
+```
 https://github.com/EwigeDreamer/unity-dots-entitiesevents.git
 ```
 
@@ -132,9 +132,9 @@ events.Dispose();
 ```
 
 ## Performance Considerations
-* Cache EventWriter and EventReader in OnCreate — they safely update internal pointers when buffers are swapped.
-* Always call EnsureBufferCapacity before parallel writes to avoid reallocations inside jobs.
-* Ensure all write jobs are completed before calling Update() on the container (generated systems handle this automatically via CompleteDependency()).
+* Cache `EventWriter` and `EventReader` in `OnCreate` — they safely update internal pointers when buffers are swapped.
+* Always call `EnsureBufferCapacity` before parallel writes to avoid reallocations inside jobs.
+* Ensure all write jobs are completed before calling `Update()` on the container (generated systems handle this automatically via `CompleteDependency()`).
 
 ## License
 
