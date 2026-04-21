@@ -30,10 +30,6 @@ namespace ED.DOTS.EntitiesEvents
         public void Write(in T value)
         {
             var writeBuffer = _data->GetWriteBuffer();
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckWriteAndThrow(writeBuffer->m_Safety);
-#endif
             writeBuffer->Write(value);
         }
 
@@ -46,10 +42,6 @@ namespace ED.DOTS.EntitiesEvents
         public void WriteNoResize(in T value)
         {
             var writeBuffer = _data->GetWriteBuffer();
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckWriteAndThrow(writeBuffer->m_Safety);
-#endif
             writeBuffer->WriteNoResize(value);
         }
 
