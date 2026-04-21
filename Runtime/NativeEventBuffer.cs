@@ -116,18 +116,6 @@ namespace ED.DOTS.EntitiesEvents
         }
 
         /// <summary>
-        /// Returns a parallel writer that can be used to write events from multiple threads.
-        /// </summary>
-        /// <returns>A <see cref="ParallelWriter"/> instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ParallelWriter AsParallelWriter()
-        {
-            // No write access check needed because we are not modifying state yet.
-            // The parallel writer itself will perform checks when writing.
-            return new ParallelWriter(this);
-        }
-
-        /// <summary>
         /// Releases all resources held by this buffer.
         /// </summary>
         [BurstCompile]
@@ -151,46 +139,6 @@ namespace ED.DOTS.EntitiesEvents
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-        }
-
-        /// <summary>
-        /// Provides parallel write access to a <see cref="NativeEventBuffer{T}"/>.
-        /// </summary>
-        [BurstCompile]
-        [NativeContainer]
-        [NativeContainerIsAtomicWriteOnly]
-        public unsafe struct ParallelWriter
-        {
-            private UnsafeList<T>.ParallelWriter _writer;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            internal AtomicSafetyHandle m_Safety;
-#endif
-
-            internal ParallelWriter(in NativeEventBuffer<T> buffer)
-            {
-                _writer = buffer._listPtr->AsParallelWriter();
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                m_Safety = buffer.m_Safety;
-                AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
-                AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
-#endif
-            }
-
-            /// <summary>
-            /// Writes an event into the buffer without checking capacity.
-            /// Ensure capacity before using this method.
-            /// </summary>
-            /// <param name="value">Event data to write.</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void WriteNoResize(in T value)
-            {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-#endif
-                _writer.AddNoResize(value);
-            }
         }
     }
 }

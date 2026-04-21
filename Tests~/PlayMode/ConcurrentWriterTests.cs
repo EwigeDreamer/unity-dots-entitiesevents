@@ -26,7 +26,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [BurstCompile]
         private struct ParallelForBatchWriteJob : IJobParallelForBatch
         {
-            public EventParallelWriter<ConcurrentTestEvent> Writer;
+            public EventWriter<ConcurrentTestEvent>.ParallelWriter Writer;
             public int BaseValue;
 
             public void Execute(int startIndex, int count)

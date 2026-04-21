@@ -91,13 +91,14 @@ public partial class ReceiverSystem : SystemBase
 ```
 
 ## Parallel Writing from Jobs
-Use `EventParallelWriter` for writing from multi‑threaded jobs:
+
+Use `EventWriter<T>.ParallelWriter` for writing from multi‑threaded jobs. The writer is thread‑safe and supports both `IJobParallelFor` and `IJobParallelForBatch` with `ScheduleParallel`, allowing many threads to write concurrently without data corruption.
 
 ```csharp
 [BurstCompile]
 struct ParallelJob : IJobParallelFor
 {
-    public EventParallelWriter<MyEvent> Writer;
+    public EventWriter<MyEvent>.ParallelWriter Writer;
 
     public void Execute(int index)
     {
@@ -106,11 +107,29 @@ struct ParallelJob : IJobParallelFor
 }
 ```
 
-Before scheduling the job, ensure the buffer capacity is sufficient:
+In your system, cache the writer and schedule the job:
 
 ```csharp
-EntityManager.EnsureBufferCapacity<MyEvent>(eventCount);
+private EventWriter<MyEvent> _writer;
+
+protected override void OnCreate()
+{
+    _writer = this.GetEventWriter<MyEvent>();
+}
+
+protected override void OnUpdate()
+{
+    // Ensure capacity before scheduling
+    EntityManager.EnsureBufferCapacity<MyEvent>(eventCount);
+
+    var job = new ParallelJob { Writer = _writer.AsParallelWriter() };
+    Dependency = job.Schedule(eventCount, 64, Dependency);
+}
 ```
+
+For batch parallel jobs, use `IJobParallelForBatch` and `ScheduleParallel` — the writer remains safe under high contention.
+
+Always call `EnsureBufferCapacity` before parallel writes to avoid reallocations inside the job.
 
 ## Manual Usage (Without ECS)
 You can create an `Events<T>` container directly:

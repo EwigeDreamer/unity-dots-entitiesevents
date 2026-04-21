@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-04-21
+
+### Changed
+- Merged `EventParallelWriter<T>` into `EventWriter<T>.ParallelWriter` and removed duplicate parallel writer from `NativeEventBuffer<T>` for a cleaner and more maintainable architecture.
+- Updated tests and examples to use `EventWriter<T>.ParallelWriter`.
+
 ## [1.0.1] - 2026-04-21
 
 ### Changed

@@ -26,7 +26,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [BurstCompile]
         private struct ParallelWriteJob : IJobParallelFor
         {
-            public EventParallelWriter<DataIntegrityEvent> Writer;
+            public EventWriter<DataIntegrityEvent>.ParallelWriter Writer;
 
             public void Execute(int index)
             {
@@ -37,7 +37,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
         [BurstCompile]
         private struct ParallelForBatchWriteJob : IJobParallelForBatch
         {
-            public EventParallelWriter<DataIntegrityEvent> Writer;
+            public EventWriter<DataIntegrityEvent>.ParallelWriter Writer;
 
             public void Execute(int startIndex, int count)
             {

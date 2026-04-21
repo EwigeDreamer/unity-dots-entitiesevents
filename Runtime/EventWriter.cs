@@ -50,10 +50,50 @@ namespace ED.DOTS.EntitiesEvents
         /// The parallel writer captures the current write buffer at call time.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EventParallelWriter<T> AsParallelWriter()
+        public ParallelWriter AsParallelWriter()
         {
-            var writeBuffer = _data->GetWriteBuffer();
-            return new EventParallelWriter<T>(writeBuffer);
+            return new ParallelWriter(_data->GetWriteBuffer());
+        }
+        
+        /// <summary>
+        /// Provides parallel write access to events.
+        /// Suitable for use in <see cref="Unity.Jobs.IJobParallelFor"/> and similar.
+        /// This writer is thread-safe and uses atomic operations internally.
+        /// </summary>
+        [NativeContainer]
+        [NativeContainerIsAtomicWriteOnly]
+        public unsafe struct ParallelWriter
+        {
+            private UnsafeList<T>.ParallelWriter _parallelWriter;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            internal AtomicSafetyHandle m_Safety;
+#endif
+
+            internal ParallelWriter(NativeEventBuffer<T>* writeBuffer)
+            {
+                _parallelWriter = writeBuffer->_listPtr->AsParallelWriter();
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                m_Safety = writeBuffer->m_Safety;
+                AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
+                AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
+#endif
+            }
+
+            /// <summary>
+            /// Writes an event without checking capacity.
+            /// Ensure buffer capacity is sufficient before calling this method.
+            /// </summary>
+            /// <param name="value">Event data to write.</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void WriteNoResize(in T value)
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+#endif
+                _parallelWriter.AddNoResize(value);
+            }
         }
     }
 }
