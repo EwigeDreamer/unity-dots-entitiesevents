@@ -97,7 +97,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             protected override void OnCreate()
             {
                 _writer = this.GetEventWriter<ConcurrentTestEvent>();
-                EntityManager.EnsureBufferCapacity<ConcurrentTestEvent>(EventCount);
+                EntityManager.EnsureEventBufferCapacity<ConcurrentTestEvent>(EventCount);
             }
 
             protected override void OnUpdate()

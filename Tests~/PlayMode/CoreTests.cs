@@ -5,11 +5,9 @@ using Unity.Entities;
 
 namespace ED.DOTS.EntitiesEvents.Tests
 {
-    
     [TestFixture]
     public class CoreTests : ECSTestBase
     {
-
         protected override void RegisterEventSystems(World world) { }
         
         [Test]

@@ -135,7 +135,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             {
                 _writer = this.GetEventWriter<ParallelTestEvent>();
                 // Гарантируем ёмкость
-                EntityManager.EnsureBufferCapacity<ParallelTestEvent>(EventCount);
+                EntityManager.EnsureEventBufferCapacity<ParallelTestEvent>(EventCount);
             }
 
             protected override void OnUpdate()

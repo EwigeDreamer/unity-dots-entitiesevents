@@ -153,7 +153,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
         public unsafe void EnsureBufferCapacity_FromSystemState_Works()
         {
             var capacity = 1024;
-            EntityManager.EnsureBufferCapacity<IntegrationTestEvent>(capacity);
+            EntityManager.EnsureEventBufferCapacity<IntegrationTestEvent>(capacity);
             var singleton = EntitiesEventsHelper.GetOrCreateSingleton<IntegrationTestEvent>(EntityManager);
             var writer = singleton.Events.GetWriter();
             for (int i = 0; i < capacity; i++)

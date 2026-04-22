@@ -32,7 +32,7 @@ namespace ED.DOTS.EntitiesEvents.Samples
         public void OnCreate(ref SystemState state)
         {
             _writer = state.GetEventWriter<ParallelEvent>();
-            state.EntityManager.EnsureBufferCapacity<ParallelEvent>(EventsCount);
+            state.EntityManager.EnsureEventBufferCapacity<ParallelEvent>(EventsCount);
         }
 
         [BurstCompile]

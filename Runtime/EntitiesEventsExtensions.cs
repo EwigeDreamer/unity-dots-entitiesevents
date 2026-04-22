@@ -92,7 +92,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <typeparam name="T">Unmanaged event type.</typeparam>
         /// <param name="state">Reference to the system state.</param>
         /// <param name="capacity">Minimum capacity required.</param>
-        public static unsafe void EnsureBufferCapacity<T>(this ref SystemState state, int capacity)
+        public static unsafe void EnsureEventBufferCapacity<T>(this ref SystemState state, int capacity)
             where T : unmanaged
         {
             var singleton = EntitiesEventsHelper.GetOrCreateSingleton<T>(ref state);
@@ -105,7 +105,7 @@ namespace ED.DOTS.EntitiesEvents
         /// <typeparam name="T">Unmanaged event type.</typeparam>
         /// <param name="entityManager">The entity manager.</param>
         /// <param name="capacity">Minimum capacity required.</param>
-        public static unsafe void EnsureBufferCapacity<T>(this EntityManager entityManager, int capacity)
+        public static unsafe void EnsureEventBufferCapacity<T>(this EntityManager entityManager, int capacity)
             where T : unmanaged
         {
             var singleton = EntitiesEventsHelper.GetOrCreateSingleton<T>(entityManager);

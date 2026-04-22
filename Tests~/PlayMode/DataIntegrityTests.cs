@@ -142,7 +142,7 @@ namespace ED.DOTS.EntitiesEvents.Tests
             protected override void OnCreate()
             {
                 _writer = this.GetEventWriter<DataIntegrityEvent>();
-                EntityManager.EnsureBufferCapacity<DataIntegrityEvent>(EventCount);
+                EntityManager.EnsureEventBufferCapacity<DataIntegrityEvent>(EventCount);
             }
 
             protected override void OnUpdate()

@@ -120,7 +120,7 @@ protected override void OnCreate()
 protected override void OnUpdate()
 {
     // Ensure capacity before scheduling
-    EntityManager.EnsureBufferCapacity<MyEvent>(eventCount);
+    EntityManager.EnsureEventBufferCapacity<MyEvent>(eventCount);
 
     var job = new ParallelJob { Writer = _writer.AsParallelWriter() };
     Dependency = job.Schedule(eventCount, 64, Dependency);
@@ -129,7 +129,7 @@ protected override void OnUpdate()
 
 For batch parallel jobs, use `IJobParallelForBatch` and `ScheduleParallel` — the writer remains safe under high contention.
 
-Always call `EnsureBufferCapacity` before parallel writes to avoid reallocations inside the job.
+Always call `EnsureEventBufferCapacity` before parallel writes to avoid reallocations inside the job.
 
 ## Manual Usage (Without ECS)
 You can create an `Events<T>` container directly:
