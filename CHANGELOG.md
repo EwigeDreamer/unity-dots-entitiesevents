@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-04-23
+
+### Fixed
+- Fixed missing ECS dependency tracking between event writer systems and the internal event update system.  
+  Added explicit `GetComponentTypeHandle<EventSingleton<T>>()` calls in `GetEventWriter` extensions and in `EventSystemBase<T>.OnUpdate`.  
+  This ensures proper job completion before buffer swapping, preventing potential race conditions.
+
 ## [1.0.2] - 2026-04-21
 
 ### Changed

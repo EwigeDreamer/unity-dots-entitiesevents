@@ -40,7 +40,6 @@ namespace ED.DOTS.EntitiesEvents.Samples
         {
             if (Input.GetKeyDown(KeyCode.P))
             {
-
                 var job = new ParallelWriteBatchJob
                 {
                     Writer = _writer.AsParallelWriter()
