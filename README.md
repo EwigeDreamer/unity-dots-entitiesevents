@@ -4,6 +4,8 @@
 
 A library that adds event functionality to Unity's Entity Component System (ECS). Enables messaging between systems using `EventWriter` and `EventReader`.
 
+> **Note:** The Entities Events library implements a **broadcast (one‑to‑many)** communication pattern. Any event written by a system is delivered to all systems that read that event type. Events are automatically cleared after one frame, making them ideal for notifications, state changes, and one‑time messages where multiple consumers may be interested.
+
 ## Features
 * Thread‑safe event writing and reading.
 * Supports parallel writing from multi‑threaded jobs (`IJobParallelFor`, `IJobParallelForBatch`).
