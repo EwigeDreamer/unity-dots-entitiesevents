@@ -135,5 +135,17 @@ namespace ED.DOTS.EntitiesEvents
             var singleton = EntitiesEventsHelper.GetOrCreateSingleton<T>(entityManager);
             singleton.Events.GetUnsafeData()->EnsureCapacity(capacity);
         }
+
+        /// <summary>
+        /// Ensures that the internal event buffers have at least the specified capacity.
+        /// </summary>
+        /// <typeparam name="T">Unmanaged event type.</typeparam>
+        /// <param name="entityManager">The entity manager.</param>
+        /// <param name="capacity">Minimum capacity required.</param>
+        public static unsafe void EnsureEventBufferCapacity<T>(this SystemBase systemBase, int capacity)
+            where T : unmanaged
+        {
+            EnsureEventBufferCapacity<T>(ref systemBase.CheckedStateRef, capacity);
+        }
     }
 }

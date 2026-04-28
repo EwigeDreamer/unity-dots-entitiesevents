@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-04-28
+
+### Added
+- Documented limitation: mixing synchronous and parallel writes to the same event type within a single frame is not allowed and will trigger a safety exception. Added a detailed warning and recommendations in the README.
+- Added `ParallelWriteRaceConditionTest` to cover the mixed‑write scenario (commented by default) and confirm that independent parallel writers work correctly.
+
 ## [1.0.3] - 2026-04-23
 
 ### Fixed
